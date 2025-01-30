@@ -1,0 +1,11 @@
+node_modules
+prisma/*.db
+back/package-lock.json
+back/coverage
+back/prisma/migrations/migration_lock.toml
+back/prisma/dev.db
+front/package-lock.json
+dist
+.idea
+.vscode
+.DS_STORE
