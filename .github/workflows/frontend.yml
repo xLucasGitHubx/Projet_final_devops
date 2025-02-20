@@ -41,7 +41,3 @@ jobs:
         run: |
           docker tag mon-front:latest mydockerhubaccount/mon-front:latest
           docker push mydockerhubaccount/mon-front:latest
-
-      # Ou déployer directement les fichiers static (ex. scp vers un serveur Nginx)
-      # - name: Deploy static site
-      #   run: ...
