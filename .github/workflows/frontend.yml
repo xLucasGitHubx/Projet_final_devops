@@ -1,0 +1,47 @@
+name: Build & Deploy APP
+
+# Déclencheur manuel
+on:
+  workflow_dispatch:
+
+jobs:
+  build_app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd front
+          npm ci
+
+      - name: Build
+        run: |
+          cd front
+          npm run build
+
+      # Si tu buildes en Docker :
+      - name: Build Docker image
+        run: |
+          docker build -t mon-front:latest ./front
+
+      # Déploiement éventuel de l'image Docker
+      - name: Login to Docker registry
+        if: always()
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker tag mon-front:latest mydockerhubaccount/mon-front:latest
+          docker push mydockerhubaccount/mon-front:latest
+
+      # Ou déployer directement les fichiers static (ex. scp vers un serveur Nginx)
+      # - name: Deploy static site
+      #   run: ...

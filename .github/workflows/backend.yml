@@ -1,0 +1,52 @@
+name: Build & Deploy API
+
+# Déclencheur : chaque push sur la branche main
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build_api:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Récupération du code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 2) Configuration de Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 3) Installation des dépendances et tests (optionnel)
+      - name: Install dependencies
+        run: |
+          cd back
+          npm ci
+          npm run test
+
+      # 4) Build ou "docker build"
+      # a) Build direct Node (ex : transpiler TypeScript) :
+      # - run: npm run build
+      #
+      # b) OU Build Docker si tu utilises Dockerfile pour le back :
+      - name: Build Docker image
+        run: |
+          docker build -t mon-back:latest ./back
+
+      # 5) Déploiement (exemple : push de l'image Docker)
+      # Ici, on suppose que tu as un registre Docker (Docker Hub, GHCR, etc.).
+      # Tu devras configurer tes secrets (par ex. DOCKERHUB_USERNAME, DOCKERHUB_TOKEN).
+      - name: Login to Docker registry
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker tag mon-back:latest mydockerhubaccount/mon-back:latest
+          docker push mydockerhubaccount/mon-back:latest
+
+      # Et/ou un déploiement vers un serveur (via SSH, scp, etc.)
+      # - name: Deploy to server
+      #   run: ...
