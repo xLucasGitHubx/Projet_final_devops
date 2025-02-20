@@ -7,7 +7,7 @@ services:
     ports:
       - "5173:80" # Nginx écoute par défaut sur le port 80 dans le conteneur
     volumes:
-      - ./front:/app:delegated # Synchronisation du code source (attention : en production, mieux vaut ne pas monter le code pour préserver l'image buildée)
+      - ./front:/app:delegated
       - front_cache:/app/node_modules
     depends_on:
       - back
