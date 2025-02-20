@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd back
-          npm ci
+          npm install
           npm run test
 
       # 4) Build ou "docker build"
