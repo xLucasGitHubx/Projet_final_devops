@@ -13,20 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2) Login à Docker Hub avec les secrets GitHub
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      # 2) Login à Scaleway Registry (utilise DOCKER_HOST et le token)
+      - name: Login to Scaleway Registry
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login ${{ secrets.DOCKER_HOST }} -u nologin --password-stdin
 
-      # 3) Build de l'image Docker avec npm install
+      # 3) Build de l'image Docker
       - name: Build Docker image
         run: |
           docker build \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:${{ github.sha }} \
+            -t ${{ secrets.DOCKER_HOST }}/namespace-lucas-madjinda/mon-back:latest \
+            -t ${{ secrets.DOCKER_HOST }}/namespace-lucas-madjinda/mon-back:${{ github.sha }} \
             ./back
 
-      # 4) Push de l'image Docker (latest + SHA)
+      # 4) Push de l'image Docker (latest + commit SHA)
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_HOST }}/namespace-lucas-madjinda/mon-back:latest
+          docker push ${{ secrets.DOCKER_HOST }}/namespace-lucas-madjinda/mon-back:${{ github.sha }}
