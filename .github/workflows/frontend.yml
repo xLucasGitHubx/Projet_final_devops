@@ -23,7 +23,7 @@ jobs:
           docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:latest \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:${{ github.sha }} \
-            --build-arg VITE_API_URL=http://nsdecombestheffotheo861lqwnn-shop-back.functions.fnc.fr-par.scw.cloud \s
+            --build-arg VITE_API_URL=http://nsdecombestheffotheo861lqwnn-shop-back.functions.fnc.fr-par.scw.cloud \
             ./front
 
       # 4) Push de l'image Docker (latest + SHA)
