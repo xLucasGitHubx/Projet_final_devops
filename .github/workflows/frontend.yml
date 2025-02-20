@@ -1,43 +1,32 @@
-name: Build & Deploy APP
+name: Build & Push Docker Image (Frontend)
 
 # Déclencheur manuel
 on:
   workflow_dispatch:
 
 jobs:
-  build_app:
+  docker_build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      # 1) Récupération du code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      # 2) Login à Docker Hub avec les secrets GitHub
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Install dependencies
-        run: |
-          cd front
-          npm install
-
-      - name: Build
-        run: |
-          cd front
-          npm run build
-
-      # Si tu buildes en Docker :
+      # 3) Build de l'image Docker avec npm install intégré
       - name: Build Docker image
         run: |
-          docker build -t mon-front:latest ./front
+          docker build \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:${{ github.sha }} \
+            ./front
 
-      # Déploiement éventuel de l'image Docker
-      - name: Login to Docker registry
-        if: always()
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
+      # 4) Push de l'image Docker (latest + SHA)
       - name: Push Docker image
         run: |
-          docker tag mon-front:latest mydockerhubaccount/mon-front:latest
-          docker push mydockerhubaccount/mon-front:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-front:${{ github.sha }}
