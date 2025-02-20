@@ -1,46 +1,32 @@
-name: Build & Deploy API
+name: Build & Push Docker Image
 
-# Déclencheur : chaque push sur la branche main
 on:
   push:
     branches: ["main"]
 
 jobs:
-  build_api:
+  docker_build:
     runs-on: ubuntu-latest
+
     steps:
       # 1) Récupération du code
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2) Configuration de Node.js
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      # 2) Login à Docker Hub avec les secrets GitHub
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 3) Installation des dépendances et tests (optionnel)
-      - name: Install dependencies
-        run: |
-          cd back
-          npm install
-          npm run test
+      # 3) Build de l'image Docker avec npm install
       - name: Build Docker image
         run: |
-          docker build -t mon-back:latest ./back
+          docker build \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:${{ github.sha }} \
+            ./back
 
-      # 5) Déploiement (exemple : push de l'image Docker)
-      # Ici, on suppose que tu as un registre Docker (Docker Hub, GHCR, etc.).
-      # Tu devras configurer tes secrets (par ex. DOCKERHUB_USERNAME, DOCKERHUB_TOKEN).
-      - name: Login to Docker registry
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
+      # 4) Push de l'image Docker (latest + SHA)
       - name: Push Docker image
         run: |
-          docker tag mon-back:latest mydockerhubaccount/mon-back:latest
-          docker push mydockerhubaccount/mon-back:latest
-
-      # Et/ou un déploiement vers un serveur (via SSH, scp, etc.)
-      # - name: Deploy to server
-      #   run: ...
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mon-back:${{ github.sha }}
