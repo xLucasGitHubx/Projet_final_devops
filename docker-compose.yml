@@ -1,0 +1,39 @@
+services:
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: front_container
+    ports:
+      - "5173:80" # Nginx écoute par défaut sur le port 80 dans le conteneur
+    volumes:
+      - ./front:/app:delegated # Synchronisation du code source (attention : en production, mieux vaut ne pas monter le code pour préserver l'image buildée)
+      - front_cache:/app/node_modules
+    depends_on:
+      - back
+
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: back_container
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./back:/app:delegated # Synchronisation du code source
+      - back_cache:/app/node_modules
+      - back_data:/app/data
+    command: >
+      sh -c "npm rebuild bcrypt --build-from-source &&
+      npx prisma migrate dev --name init &&
+      npm run start"
+    env_file:
+      - ./back/.env
+
+volumes:
+  front_cache:
+    driver: local
+  back_cache:
+    driver: local
+  back_data:
+    driver: local
